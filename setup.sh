@@ -5,14 +5,14 @@ set -e
 declare -r scriptdir=$(dirname $(readlink -ef $0))
 declare -r username=$(logname)
 
-source conf/env
-source lib/common
-
 if [[ $EUID -ne 0 ]] ; then
     die "Root privilege is required to run setup script"
 fi
 
 [[ -n $username ]] || die "Can't get usename from setup script"
+
+source conf/env
+source lib/common
 
 packages=(
     build-essential
@@ -46,6 +46,8 @@ info "copy apt key"
 cp -av /etc/apt/trusted.gpg.d/ ${scriptdir}/apt
 
 info "Remove old executable"
-rm -rf /usr/local/bin/deepin-buildpackage
+if [[ -f /usr/local/bin/deepin-buildpackage ]] ; then
+    rm -rf /usr/local/bin/deepin-buildpackage
+fi
 
 mkdir -pv ${WORKBASE}/artifacts

@@ -1,12 +1,17 @@
 #! /bin/bash
 
-declare -r BASEMIRROR=http://s135.sh.deepin.cn
+#declare -r BASEMIRROR=http://s135.sh.deepin.cn
+# wh
+declare -r BASEMIRROR=http://pools.corp.deepin.com
+
 declare -Ar MIRRORSITE=(
-    [mips64el]="${BASEMIRROR}/mips64el-deepin"
-    [sw_64]="${BASEMIRROR}/sw6a"
+    [mips64el]="${BASEMIRROR}/mips64el"
+    [sw_64]="http://10.0.10.45/repo/sw530"
+    [arm64]="http://10.0.10.45/repo/arm64"
 )
 
 declare -Ar UPSTREAMREPO=(
-    [mips64el]="${BASEMIRROR}/mips64el-debian"
-    [sw_64]="${BASEMIRROR}/mips64el-debian"
+    [mips64el]="${BASEMIRROR}/deepin"
+    [sw_64]="http://s135.sh.deepin.cn/mips64el-debian"
+    [arm64]="${BASEMIRROR}/deepin"
 )

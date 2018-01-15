@@ -9,10 +9,12 @@ declare -ra ARCHITECTURES=(
     mips64el
     # should be sw64
     sw_64
+    arm64
 )
 declare -rA DISTRIBUTIONS=(
-    ['mips64el']='stable'
-    ['sw_64']='stable'
+    ['mips64el']='unstable'
+    ['sw_64']='unstable'
+    ['arm64']='testing'
 )
 
 declare -r WORKBASE=${scriptdir%/*}
