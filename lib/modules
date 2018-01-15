@@ -56,6 +56,22 @@ downloadDebianSrc() {
         # rename dscfile
         [[ $odscfile == $dscfile ]] || mv $odscfile $dscfile
         popd
+    elif [[ -f $dsc ]] ; then
+        # $dsc is a local file
+        cp ${dsc} ${workdir}/
+        local linenum=1
+        local dscpath=$(dirname ${dsc})
+        dscline=$(tail -n ${linenum} ${dsc} | head -1)
+        while [[ x${dscline} != x'Files:' ]] ; do
+            local srcfile=$(echo ${dscline} | awk '{print $3}' )
+            if [[ -f ${dscpath}/${srcfile}  ]] ; then
+                cp ${dscpath}/${srcfile} ${workdir}/
+            else
+                die EACCESS "Not able to find ${srcfile} in ${dscpath}"
+            fi
+            linenum=$(echo $linenum + 1 | bc)
+            dscline=$(tail -n ${linenum} ${dsc} | head -1)
+        done
     fi
 
     [[ -f ${workdir}/${dscfile} ]] || \
