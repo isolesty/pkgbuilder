@@ -60,7 +60,7 @@ downloadDebianSrc() {
         # $dsc is a local file
         cp -v ${dsc} ${workdir}/
         local dscpath=$(dirname ${dsc})
-        cat ${dsc} | awk '/Files:/,/^$/' | grep -v 'Files:' | while read -r line; do
+        sed -n '/Checksums-Sha1:/,/Checksums-Sha256:/{/Checksums-Sha1:/n;/Checksums-Sha256:/b;p}' ${dsc} | while read -r line; do
             if [[ x${line} == x ]]; then
                 continue
             fi
