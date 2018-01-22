@@ -60,15 +60,14 @@ downloadDebianSrc() {
         # $dsc is a local file
         cp -v ${dsc} ${workdir}/
         local dscpath=$(dirname ${dsc})
-        sed -n '/Checksums-Sha1:/,/Checksums-Sha256:/{/Checksums-Sha1:/n;/Checksums-Sha256:/b;p}' ${dsc} | while read -r line; do
+        dcmd ${dsc} | grep -v 'dsc$' | while read -r line; do
             if [[ x${line} == x ]]; then
                 continue
             fi
-            local srcfile=$(echo ${line} | awk '{print $3}')
-            if [[ -f ${dscpath}/${srcfile}  ]] ; then
-                cp -v ${dscpath}/${srcfile} ${workdir}/
+            if [[ -f ${dscpath}/${line}  ]] ; then
+                cp -v ${dscpath}/${line} ${workdir}/
             else
-                die EACCESS "Not able to find ${srcfile} in ${dscpath}"
+                die EACCESS "Not able to find ${line} in ${dscpath}"
             fi
         done
     fi
