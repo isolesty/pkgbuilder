@@ -7,15 +7,15 @@ aptGetSource() {
 
     local apt_options="-o Dir::Etc=${aptdir} \
         -o Dir::Etc::sourcelist=sources.list-${ARCH} \
-	    -o Dir::Etc::SourceParts=/dev/null \
-	    -o Dir::State=${aptdir}/state \
-	    -o Dir::Cache=${aptdir}/cache \
-	    -o Debug::NoLocking=true \
-	    -o Acuqire::Retries=5 \
-	    -o APT::Architecture=${ARCH} \
-	    -o APT::Default-Release=${DISTRIBUTIONS[${ARCH}]} \
-	    -o APT::Get::Assume-Yes=true \
-	    -o APT::Get::AllowUnauthenticated=true"
+        -o Dir::Etc::SourceParts=/dev/null \
+        -o Dir::State=${aptdir}/state \
+        -o Dir::Cache=${aptdir}/cache \
+        -o Debug::NoLocking=true \
+        -o Acuqire::Retries=5 \
+        -o APT::Architecture=${ARCH} \
+        -o APT::Default-Release=${DISTRIBUTIONS[${ARCH}]} \
+        -o APT::Get::Assume-Yes=true \
+        -o APT::Get::AllowUnauthenticated=true"
 
     mkdir -pv ${aptdir}/state/lists/partial
 
@@ -36,6 +36,7 @@ EOF
     createWorkdir
 
     pushd ${workdir}
+    info "Downloading source package from ${UPSTREAMREPO[$ARCH]}"
     apt-get ${apt_options} source --download-only ${package}
     popd
 }
@@ -48,33 +49,30 @@ downloadDebianSrc() {
     version=$(echo ${dscfile//.dsc} | sed -e "s/${package}_//")
 
     createWorkdir
-
+    # dsc is an uri
     if checkValidURL $dsc ; then
-        hasBin dget || die EPACKAGE "Missing devscripts in the system"
+        hasBin dget || die EPACKAGE "Install devscripts"
         pushd ${workdir}
         dget -d -u ${dsc}
-        # rename dscfile
+        # Make sure the final dscfile is url decoded
+        # http://www.degraeve.com/reference/urlencoding.php
         [[ $odscfile == $dscfile ]] || mv $odscfile $dscfile
         popd
     elif [[ -f $dsc ]] ; then
-        # $dsc is a local file
-        cp -v ${dsc} ${workdir}/
-        local dscpath=$(dirname ${dsc})
-        dcmd ${dsc} | grep -v 'dsc$' | while read -r line; do
-            if [[ x${line} == x ]]; then
-                continue
-            fi
-            if [[ -f ${dscpath}/${line}  ]] ; then
-                cp -v ${dscpath}/${line} ${workdir}/
-            else
-                die EACCESS "Not able to find ${line} in ${dscpath}"
-            fi
-        done
+        # dsc is a local file
+        local dscpath=$(dirname $(realpath -e ${dsc}))
+        if [[ ${dscpath} == ${workdir} || \
+                  ${dscpath} == ${ARTIFACTS}/${package} ]] ; then
+            : do nothing if dsc resides in these places
+        else
+            # copy source package to workdir
+            dcmd cp -v ${dsc} ${workdir} || \
+                die EACCESS "Not able to copy source package recorded in $dsc to $workdir"
+        fi
     fi
-
-    [[ -f ${workdir}/${dscfile} ]] || \
-        die EACCESS "Not able to find ${dscfile} in ${workdir}"
     dsc=$dscfile
+    [[ -f ${workdir}/${dscfile} ]] || \
+        die EACCESS "Not able to locate ${dscfile} in ${workdir}"
 }
 
 prepareBuild() {
@@ -87,8 +85,17 @@ prepareBuild() {
         dsc=${package}_${version}.dsc
     fi
 
-    if [[ -f ${workdir}/${dsc} ]] ; then
-        dpkg-source -x ${workdir}/${dsc} ${srcdir}
+    local dscinw=${workdir}/${dsc}
+    local dscina=${ARTIFACTS}/${package}/${dsc}
+
+    if [[ -f ${dscinw} ]] ; then
+        # debian source control in workdir
+        info "Found ${dscinb}"
+        dpkg-source -x ${dscinw} ${srcdir}
+    elif [[ -f ${dscina} ]] ; then
+        # debian source control in artifacts
+        info "Found ${dscina}"
+        dpkg-source -x ${dscina} ${srcdir}
     else
         die EACCESS "Fail to read Debian source control file"
     fi
@@ -127,7 +134,8 @@ buildPackage() {
         fi
 
         info "buildpackage with options: ${DEBBUILDOPTS}"
-        eval dpkg-buildpackage ${DEBBUILDOPTS}
+        eval dpkg-buildpackage ${DEBBUILDOPTS} || \
+                die EBUILD "Failed to build ${package} via dpkg-buildpackage"
     else
         eval pdebuild --pbuilder cowbuilder  \
              --use-pdebuild-internal         \
@@ -135,14 +143,31 @@ buildPackage() {
              ${PBUILDEREXTRAOPTS[@]}         \
              --                              \
              ${PBUILDEROPTS[@]}              \
-             ${COWBUILDEROPTS[@]}
+             ${COWBUILDEROPTS[@]} || \
+             die EBUILD "Failed to build ${package} via cowbuilder"
     fi
 
     popd
+    moveArtifacts
+}
+
+moveArtifacts() {
+    local artifactsdir=${ARTIFACTS}/${package}
+    local changes=${workdir}/${package}_${version}_${ARCH}.changes
+    if [[ -f $changes ]] ; then
+        info "Moving build artifacts to $artifactsdir"
+        install -d $artifactsdir
+        dcmd mv -v $changes $artifactsdir
+    fi
 }
 
 uploadArtifacts() {
-    [[ -z $uhost ]] && return 0
-    hasBin dput || die EPACKAGE "Missing dput in the system!!!"
-    dput -uf ${uhost} $(ls -At ${workdir}/*.changes| head -n 1)
+    hasBin dput || die EPACKAGE "Install dput"
+    [[ -n $uhost ]] || return
+    if dput -H | grep -wqs ${uhost} ; then
+        dput -uf ${uhost} ${ARTIFACTS}/${package}/${package}_${version}_${ARCH}.changes
+    else
+        warn "No ${uhost} definition in dput configuration, ignore package upload"
+    fi
 }
+# vim: number tabstop=4 softtabstop=4 expandtab

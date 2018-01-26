@@ -46,6 +46,6 @@ info "copy apt key"
 cp -av /etc/apt/trusted.gpg.d/ ${scriptdir}/apt
 
 info "Remove old executable"
-rm -rf /usr/local/bin/deepin-buildpackage
+rm -f /usr/local/bin/deepin-buildpackage
 
-mkdir -pv ${WORKBASE}/artifacts
+mkdir -pv ${ARTIFACTS}

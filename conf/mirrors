@@ -1,5 +1,3 @@
-#! /bin/bash
-
 declare -r BASEMIRROR=http://s135.sh.deepin.cn
 declare -Ar MIRRORSITE=(
     [mips64el]="${BASEMIRROR}/mips64el-deepin"
@@ -10,3 +8,8 @@ declare -Ar UPSTREAMREPO=(
     [mips64el]="${BASEMIRROR}/mips64el-debian"
     [sw_64]="${BASEMIRROR}/mips64el-debian"
 )
+
+# Local variables:
+# coding: utf-8
+# mode: shell-script
+# End:

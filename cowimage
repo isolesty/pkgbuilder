@@ -3,7 +3,7 @@
 declare -r scriptdir=$(dirname $(readlink -ef $0))
 
 for config in conf/{env,mirrors,cowbuilder} ; do
-   source ${scriptdir}/${config}
+    source ${scriptdir}/${config}
 done
 
 MYPBOPTIONS=(
@@ -22,16 +22,18 @@ fi
 
 case $cmd in
     update)
-	sudo cowbuilder --update ${MYPBOPTIONS[@]}
-	;;
+        sudo cowbuilder --update ${MYPBOPTIONS[@]}
+        ;;
     login)
-	sudo cowbuilder --login --save ${MYPBOPTIONS[@]}
-	;;
+        sudo cowbuilder --login --save ${MYPBOPTIONS[@]}
+        ;;
     *)
-	echo "Usage: $0 update|login [architecture]"
-	exit 1
-	;;
-    *)
-	
+        echo "Usage: $0 update|login [architecture]"
+        exit 1
+        ;;
 esac
 
+# Local variables:
+# coding: utf-8
+# mode: sh-shell
+# End:

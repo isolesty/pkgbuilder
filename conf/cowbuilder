@@ -18,3 +18,8 @@ declare -ar COWBUILDEROPTS=(
     "--basepath     ${WORKBASE}/base.cow-${ARCH}"
     "--buildplace   ${WORKBASE}/deepin-chroot"
 )
+
+# Local variables:
+# coding: utf-8
+# mode: shell-script
+# End:

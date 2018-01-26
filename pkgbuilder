@@ -87,6 +87,8 @@ else
     die EOPTS "'-n' or '-d' is mandatory option"
 fi
 
+# add a blocking lock
+lockScript
 printBuildInfo
 prepareBuild
 
@@ -94,5 +96,11 @@ createPbuilderChroot
 # everything else beyond '--' in command line goes to buildPackage function
 buildPackage $@
 uploadArtifacts
+# release the lock
+unlockScript
 
+# Local variables:
+# coding: utf-8
+# mode: sh-shell
+# End:
 # vim: number tabstop=4 softtabstop=4 expandtab

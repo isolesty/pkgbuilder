@@ -81,9 +81,10 @@ createdir() {
 }
 
 printHelp() {
+    local cmd=${0##*/}
     cat <<EOF >&2
 Usage:
-  $0 -n PACKAGE|-d DSC [-a ARCH] [-l CHANGELOG] [-u HOST] [-w WORKDIR] [-b|-p] [-h]
+  ${cmd} -n PACKAGE|-d DSC [-a ARCH] [-l CHANGELOG] [-u HOST] [-b|-p] [-h]
 
 Package builder for deepin mips team, version $SVERSION
 
@@ -102,14 +103,14 @@ Application Options:
                                (recommended for a clean buid)
 
 Note:
-$0 will not issue any build command (pdebuild or dpkg-buildpackage) unless -p or -b option is specified.
+${cmd} will not issue any build command (pdebuild or dpkg-buildpackage) unless -p or -b option is specified.
 
 Examples:
-  $0 -n dde-desktop                            Prepare for building dde-destop
-  $0 -n dde-desktop -b                         Build dde-desktop from scratch
-  $0 -n dde-desktop -b -u staging              Build dde-desktop then upload to staging
-  $0 -n dde-api -p -l "Rebuild for testing"    Build dde-api in a clean pbuilder chroot
-  $0 -a mips64el -n base-files -p              Build base-files in a clean mips64el chroot
+  ${cmd} -n dde-desktop                            Prepare for building dde-destop
+  ${cmd} -n dde-desktop -b                         Build dde-desktop from scratch
+  ${cmd} -n dde-desktop -b -u staging              Build dde-desktop then upload to staging
+  ${cmd} -n dde-api -p -l "Rebuild for testing"    Build dde-api in a clean pbuilder chroot
+  ${cmd} -a mips64el -n base-files -p              Build base-files in a clean mips64el chroot
 EOF
     exit 0
 }

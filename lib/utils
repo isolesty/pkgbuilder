@@ -52,6 +52,10 @@ checkValidURL() {
 printBuildInfo() {
     local builder='None'
 
+    info "Wait a few seconds, I'll show your upstream package versions, for reference only"
+    rmadison $package
+    sleep 5
+
     [[ $build_pkg -eq 1 ]] && builder=dpkg-buildpackage
     [[ $build_pkg_via_pbuilder -eq 1 ]] && builder=cowbuilder
 
@@ -78,4 +82,22 @@ createWorkdir() {
     assert package
     workdir=${WORKBASE}/${package}
     createdir ${workdir} "work base"
+}
+
+# http://wiki.bash-hackers.org/howto/mutex
+lockScript() {
+    local lockfile=/tmp/${package}-${version}-lock
+    if ( set -o noclobber; echo $$ > $lockfile ) 2>/dev/null ; then
+        info "Acquiring a mutex lock on $lockfile"
+        trap "reset; rm -f $lockfile; exit $?" INT TERM EXIT
+    else
+        die "Someone is building ${package} ${version} via PID $(cat $lockfile)"
+    fi
+}
+
+unlockScript() {
+    local lockfile=/tmp/${package}-${version}-lock
+    info "Releasing mutex lock on $lockfile"
+    rm -f $lockfile
+    trap - INT TERM EXIT
 }

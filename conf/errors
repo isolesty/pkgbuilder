@@ -8,3 +8,8 @@ declare -Ar ERROR=(
     [EBUILD]=7      # build failed
     [EMISC]=20      # undefined error
 )
+
+# Local variables:
+# coding: utf-8
+# mode: shell-script
+# End:
